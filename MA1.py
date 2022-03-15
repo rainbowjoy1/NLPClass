@@ -33,4 +33,6 @@ def data_cleaning (tweet):
 test = "Hello this is #cool"
 
 print(data_cleaning(test))
+
+#is my commit still working?
 	  
