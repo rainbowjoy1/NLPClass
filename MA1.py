@@ -4,9 +4,6 @@
 
 # ## Pre-processing
 
-# In[1]:
-
-
 ### TODO: 
 ### 1. fix missing words
 ### 2. Review part 2
@@ -37,7 +34,6 @@ print(positive_tweets[700])
 # Next, we want to concatenate all tweets together.
 
 positive_tweets = ("".join(positive_tweets))
-
 positive_tweets[0:200]
 
 # Next we remove some characters.
@@ -45,7 +41,7 @@ positive_tweets[0:200]
 import re
 nltk.download('stopwords')
 
-###should stop words be downloaded if it is not used?
+### TODO should stop words be downloaded if it is not used?
 
 positive_tweets=re.sub('[^A-Za-z0-9.]+', ' ',positive_tweets)
 
@@ -141,24 +137,21 @@ from collections import defaultdict
 tweets_num_tri = defaultdict(lambda: defaultdict(lambda: 0))
 tweets_prob_tri = defaultdict(lambda: defaultdict(lambda: 0))
 
-def make_tri(data):
-    for sentence in data:
-        for w1, w2, w3 in trigrams(sentence, pad_right=True, pad_left=True):
-            tweets_num_tri[(w1, w2)][w3] += 1
 
-    for w1_w2 in tweets_num_tri:
-        total_count = float(sum(tweets_num_tri[w1_w2].values()))
-        for w3 in tweets_num_tri[w1_w2]:
-            if total_count == 0:
-                tweets_prob_tri[w1_w2][w3] = 0
-            else:
-                tweets_prob_tri[w1_w2][w3] = tweets_num_tri[w1_w2][w3] / total_count
+for sentence in tokenized_text:
+      for w1, w2, w3 in trigrams(sentence, pad_right=True, pad_left=True):
+          tweets_num_tri[(w1, w2)][w3] += 1
+  for w1_w2 in tweets_num_tri:
+      total_count = float(sum(tweets_num_tri[w1_w2].values()))
+      for w3 in tweets_num_tri[w1_w2]:
+          if total_count == 0:
+              tweets_prob_tri[w1_w2][w3] = 0
+          else:
+              tweets_prob_tri[w1_w2][w3] = tweets_num_tri[w1_w2][w3] / total_count
 
 def trigram(input_w1, input_w2, input_w3):
     return tweets_prob_tri[input_w1, input_w2][input_w3]
 
-
-make_tri(tokenized_text)
 trigram("we","had","a") # 1.0 (only word following "we had")
 
 #trigram("nonexistingword", "had", "a") # 0 (such a sentence does not exist)
@@ -173,30 +166,15 @@ trigram("we","had","a") # 1.0 (only word following "we had")
 
 def weighted_n_gram(input_w1, input_w2, input_w3, unigram_weight, bigram_weight, trigram_weight, data = tokenized_text):
     if unigram_weight + bigram_weight + trigram_weight == 1:
-        print(trigram(input_w1, input_w2, input_w3))
-        print(bigram(input_w1,input_w2))
-        print(unigram(input_w1))
         if unigram(input_w1) != 0:
             return trigram_weight * trigram(input_w1, input_w2, input_w3) + bigram_weight * bigram(input_w1,input_w2) + unigram_weight * unigram(input_w1)
         else:
             return 1
     else:
         print("Incompatible weights!")
-        
-
-
-# In[148]:
-
+      
 
 weighted_n_gram("this","is", "ahbjasbdhasbhdajh", 0.2, 0.3, 0.5)
-# calculations are weird
-
-# TODO: 
-# 1. fix missing words
-# 2. Review part 2
-# 
-# 4. Clean (not prioritized)
-
 
 # ## Part 3 - Find weights that maximizes probability
 
@@ -230,16 +208,48 @@ df.plot(x='Trigram Weight', y='Probability', style='o')
 
 # ## Part 4 - Generate random sentences
 
-# In[104]:
+import random
+ 
+text = [None, None]
+ 
+sentence_finished = False
+ 
+while not sentence_finished:
+    r = random.random()
+    accumulator = .0
+    
+    for word in tweets_prob_tri[tuple(text[-2:])].keys():
+        accumulator += model_sample[tuple(text[-2:])][word]
+        if accumulator >= r:
+            text.append(word)
+            break
+        else:
+    if text[-2:] == [None, None]:
+        sentence_finished = True
 
+print ('\nThe generated sentence is: \n', ' '.join([t for t in text if t]))
 
 Danielle!
 
-import random
+def generate_sent(model, num_words, random_seed=42):
+    content = []
+    for token in model.generate(num_words, random_seed=random_seed):
+        if token == '<s>':
+            continue
+        if token == '</s>':
+            break
+        content.append(token)
+    return detokenize(content)
 
-sentence = random.choices(tweet__word_tokenized, k=10)
 
-print(sentence)
+
+
+
+
+
+
+
+
 
 
 # Only picking unigrams does not produce well phrased sentences
