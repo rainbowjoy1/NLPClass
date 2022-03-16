@@ -33,7 +33,7 @@ print(positive_tweets[700])
 
 # Next, we want to concatenate all tweets together.
 
-positive_tweets = ("".join(positive_tweets))
+positive_tweets = (" ".join(positive_tweets))
 positive_tweets[0:200]
 
 # Next we remove some characters.
@@ -43,7 +43,11 @@ nltk.download('stopwords')
 
 ### TODO should stop words be downloaded if it is not used?
 
-positive_tweets=re.sub('[^A-Za-z0-9.]+', ' ',positive_tweets)
+
+positive_tweets=re.sub(r'@\w+', '',positive_tweets)
+positive_tweets=re.sub(r'http\S+', '', positive_tweets)
+positive_tweets=positive_tweets.strip()
+positive_tweets=re.sub("[^A-Za-z0-9.']+", ' ',positive_tweets)
 
 positive_tweets[0:200]
 
@@ -62,7 +66,7 @@ tweet__sentence_tokenized = tokenize.sent_tokenize(positive_tweets)
 # Tokenize words and sentences in one list (required format for bigrams and trigrams)
 tokenized_text = []
 for sentence in tweet__sentence_tokenized:
-    tokenized_text.append(nltk.word_tokenize(sentence))
+  tokenized_text.append(nltk.word_tokenize(sentence))
     
 #print(tweet__word_tokenized[0:20])
 #print(tweet__sentence_tokenized[0:1])
@@ -139,15 +143,15 @@ tweets_prob_tri = defaultdict(lambda: defaultdict(lambda: 0))
 
 
 for sentence in tokenized_text:
-      for w1, w2, w3 in trigrams(sentence, pad_right=True, pad_left=True):
-          tweets_num_tri[(w1, w2)][w3] += 1
+  for w1, w2, w3 in trigrams(sentence, pad_right=True, pad_left=True):
+    tweets_num_tri[(w1, w2)][w3] += 1
   for w1_w2 in tweets_num_tri:
-      total_count = float(sum(tweets_num_tri[w1_w2].values()))
-      for w3 in tweets_num_tri[w1_w2]:
-          if total_count == 0:
-              tweets_prob_tri[w1_w2][w3] = 0
-          else:
-              tweets_prob_tri[w1_w2][w3] = tweets_num_tri[w1_w2][w3] / total_count
+    total_count = float(sum(tweets_num_tri[w1_w2].values()))
+    for w3 in tweets_num_tri[w1_w2]:
+      if total_count == 0:
+        tweets_prob_tri[w1_w2][w3] = 0
+      else:
+        tweets_prob_tri[w1_w2][w3] = tweets_num_tri[w1_w2][w3] / total_count
 
 def trigram(input_w1, input_w2, input_w3):
     return tweets_prob_tri[input_w1, input_w2][input_w3]
@@ -208,78 +212,27 @@ df.plot(x='Trigram Weight', y='Probability', style='o')
 
 # ## Part 4 - Generate random sentences
 
+### Trigram implementation from class
+
 import random
  
 text = [None, None]
  
 sentence_finished = False
- 
+
+
 while not sentence_finished:
-    r = random.random()
-    accumulator = .0
-    
-    for word in tweets_prob_tri[tuple(text[-2:])].keys():
-        accumulator += model_sample[tuple(text[-2:])][word]
-        if accumulator >= r:
-            text.append(word)
-            break
-        else:
-    if text[-2:] == [None, None]:
-        sentence_finished = True
+  r = random.random()
+  accumulator = .0
+  for word in tweets_prob_tri[tuple(text[-2:])].keys():
+    accumulator += tweets_prob_tri[tuple(text[-2:])][word]
+    if accumulator >= r:
+      text.append(word)
+      break
+  if text[-2:] == [None, None]:
+    sentence_finished = True
 
 print ('\nThe generated sentence is: \n', ' '.join([t for t in text if t]))
-
-Danielle!
-
-def generate_sent(model, num_words, random_seed=42):
-    content = []
-    for token in model.generate(num_words, random_seed=random_seed):
-        if token == '<s>':
-            continue
-        if token == '</s>':
-            break
-        content.append(token)
-    return detokenize(content)
-
-
-
-
-
-
-
-
-
-
-
-
-# Only picking unigrams does not produce well phrased sentences
-
-# In[122]:
-
-
-bigram_list = list(bigrams(tweet__word_tokenized, pad_left=True, pad_right=True))
-#print(bigram_list)
-print(bigram_list[1][0])
-
-
-# In[134]:
-
-
-sentence = []
-bigram_list = list(bigrams(tweet__word_tokenized, pad_left=True, pad_right=True))
-
-#for sentence in range(10): # 10 sentences
-for i in range(10): # 10 words in each sentence
-    if i % 2:
-        sentence.append(str(bigram_list[i][0]))
-        sentence.append(str(bigram_list[i][1]))
-    else:
-        sentence.append(random.choices(tweet__word_tokenized, k=1))
-
-print(sentence)
-
-
-# In[ ]:
 
 
 
