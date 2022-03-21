@@ -235,5 +235,5 @@ while not sentence_finished:
 print ('\nThe generated sentence is: \n', ' '.join([t for t in text if t]))
 
 
-
+"Testing Github in Spyder"
 
